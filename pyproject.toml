@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cn-date"
+version = "0.1.0"
+description = "零依赖中文自然语言日期解析：明天下午3点 / 下周一 / 3天后 → datetime"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["nlp", "date parsing", "中文日期", "reminder"]
+
+[project.scripts]
+cn-date = "cn_date.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["cn_date*"]
