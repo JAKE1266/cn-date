@@ -1,5 +1,11 @@
 # cn-date
 
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Tests](https://img.shields.io/badge/tests-17%20passing-success)
+![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+
 零依赖的中文自然语言日期解析 —— 把「明天下午3点」「下周一」「3天后晚上8点半」变成可用的 `datetime`。
 
 - **相对日**：今天 / 今晚 / 明天 / 后天 / 大后天
@@ -61,6 +67,18 @@ parse_dt("随便说说")   # None
 ```bash
 python -m unittest discover -s tests
 # Ran 17 tests ... OK
+```
+
+
+## 📁 项目结构
+
+```
+cn-date/
+├── LICENSE
+├── cn_date/
+├── pyproject.toml
+├── tests/
+└── README.md
 ```
 
 ## License
