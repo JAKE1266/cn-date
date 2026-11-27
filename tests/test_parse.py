@@ -43,8 +43,15 @@ class TestClock(unittest.TestCase):
         self.assertEqual(dt("明天 14:30"), datetime(2026, 3, 5, 14, 30))
 
     def test_invalid_hour(self):
-        self.assertIsNone(dt("25点"))
-        self.assertIsNone(dt("10点75分"))
+        for text in ("25点", "24点", "24点30分", "24:00", "中午24点",
+                     "明天中午24点", "凌晨24点", "晚上24点", "10点75分"):
+            with self.subTest(text=text):
+                self.assertIsNone(dt(text))
+
+    def test_numeric_boundaries(self):
+        for text in ("123点", "10点123分", "14:300"):
+            with self.subTest(text=text):
+                self.assertIsNone(dt(text))
 
 
 class TestWeekday(unittest.TestCase):
@@ -94,6 +101,11 @@ class TestMonthDay(unittest.TestCase):
     def test_month_end_word(self):
         self.assertEqual(dt("月底"), datetime(2026, 3, 31, 9, 0))
 
+    def test_invalid_month_day(self):
+        for text in ("0号", "00号", "下月0号", "131号"):
+            with self.subTest(text=text):
+                self.assertIsNone(dt(text))
+
 
 class TestTonightAndClean(unittest.TestCase):
     def test_tonight(self):
@@ -111,7 +123,7 @@ class TestTonightAndClean(unittest.TestCase):
         r = parse("明天", NOW)
         self.assertTrue(r.has_date and not r.has_time)
         r = parse("18:00", NOW)
-        self.assertFalse(r.has_date and True)  # has_date 为 False
+        self.assertFalse(r.has_date)
         self.assertTrue(r.has_time)
 
 

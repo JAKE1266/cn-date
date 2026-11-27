@@ -13,7 +13,15 @@ from . import __version__
 from .core import parse
 
 
+def _configure_standard_streams() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(argv=None) -> int:
+    _configure_standard_streams()
     ap = argparse.ArgumentParser(prog="cn-date", description="中文自然语言日期解析")
     ap.add_argument("--version", action="version", version=f"cn-date {__version__}")
     ap.add_argument("text", nargs="+", help="一句中文（可多条，逐条解析）")
@@ -30,7 +38,7 @@ def main(argv=None) -> int:
     for text in args.text:
         r = parse(text, now)
         if r is None:
-            print(f"{text}  → 无法解析")
+            print(f"{text}  →  无法解析")
             rc = 1
         else:
             flags = "".join([("D" if r.has_date else ""), ("T" if r.has_time else "")]) or "-"
