@@ -27,6 +27,8 @@ def main() -> None:
     assert cn_date.parse_dt("中午24点", now) is None
     assert cn_date.parse_dt("10点123分", now) is None
     assert cn_date.parse_dt("0号", now) is None
+    assert cn_date.parse_dt("明天123点", now) is None
+    assert cn_date.parse_dt("明天0号", now) is None
 
     executable = Path(sysconfig.get_path("scripts")) / (
         "cn-date.exe" if os.name == "nt" else "cn-date"

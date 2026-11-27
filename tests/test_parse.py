@@ -53,6 +53,11 @@ class TestClock(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertIsNone(dt(text))
 
+    def test_invalid_clock_with_date(self):
+        for text in ("明天123点", "后天14:300", "下周10点123分"):
+            with self.subTest(text=text):
+                self.assertIsNone(dt(text))
+
 
 class TestWeekday(unittest.TestCase):
     def test_this_week(self):
@@ -103,6 +108,11 @@ class TestMonthDay(unittest.TestCase):
 
     def test_invalid_month_day(self):
         for text in ("0号", "00号", "下月0号", "131号"):
+            with self.subTest(text=text):
+                self.assertIsNone(dt(text))
+
+    def test_invalid_month_day_with_date(self):
+        for text in ("明天0号", "后天131号", "下周00号"):
             with self.subTest(text=text):
                 self.assertIsNone(dt(text))
 

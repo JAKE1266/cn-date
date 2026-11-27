@@ -24,10 +24,10 @@ _WEEKDAYS = {"一": 0, "二": 1, "三": 2, "四": 3, "五": 4, "六": 5, "日": 
 _P_DAY_WORD = re.compile(r"(大后天|后天|明天|今晚|今天)")
 _P_WEEKDAY = re.compile(r"(下下|下|本)?(?:周|星期|礼拜)([一二三四五六日天])")
 _P_OFFSET = re.compile(r"(\d+|半|一两|两|俩|仨)\s*个?\s*(小时|分钟|分|天|日|周|星期|月)后")
-_P_MONTH_DAY = re.compile(r"(下个?月|本月|这个月)?\s*(?<!\d)(\d{1,2})(?!\d)\s*号")
+_P_MONTH_DAY = re.compile(r"(下个?月|本月|这个月)?\s*(?<!\d)(\d+)(?!\d)\s*号")
 _P_MERIDIEM = re.compile(r"(凌晨|早上|清晨|上午|中午|下午|午后|傍晚|晚上|夜里|深夜)")
 _P_CLOCK = re.compile(r"(凌晨|早上|清晨|上午|中午|下午|午后|傍晚|晚上|夜里|深夜)?\s*"
-                      r"(?<!\d)(\d{1,2})\s*[点时:：]\s*(半|(\d{1,2})\s*分?)?(?!\d)")
+                      r"(?<!\d)(\d+)\s*[点时:：]\s*(半|(\d+)\s*分?)?(?!\d)")
 
 _AFTER_OFFSET = {"凌晨": 0, "早上": 0, "清晨": 0, "上午": 0,
                  "中午": 12, "下午": 12, "午后": 12, "傍晚": 12,
@@ -86,21 +86,31 @@ def parse(text: str, now: datetime | None = None) -> ParseResult | None:
     now = now or datetime.now()
     if not text or not text.strip():
         return None
+
+    clock_matches = list(_P_CLOCK.finditer(text))
+    for clock in clock_matches:
+        _, hh, _, mm = clock.groups()
+        if len(hh) > 2 or not 0 <= int(hh) <= 23:
+            return None
+        if mm is not None and (len(mm) > 2 or int(mm) > 59):
+            return None
+
+    month_day_matches = list(_P_MONTH_DAY.finditer(text))
+    for month_day in month_day_matches:
+        day = month_day.group(2)
+        if len(day) > 2 or int(day) < 1:
+            return None
+
     has_date = has_time = False
     date_part: datetime | None = None
     hour, minute = _DEFAULT_HOUR, 0
 
     # ---- 时刻 ----
-    m = _P_CLOCK.search(text)
+    m = clock_matches[0] if clock_matches else None
     if m:
         meridiem, hh, half, mm = m.groups()
-        raw_hour = int(hh)
-        if not 0 <= raw_hour <= 23:
-            return None
-        h = _apply_meridiem(raw_hour, meridiem)
+        h = _apply_meridiem(int(hh), meridiem)
         minute = 30 if half == "半" else int(mm or 0)
-        if not (0 <= h <= 23) or minute > 59:
-            return None
         hour, has_time = h, True
         # 「今晚8点」这类：段词未出现但「今晚」已隐含晚间
         if meridiem is None and "今晚" in text and h < 12:
@@ -152,17 +162,14 @@ def parse(text: str, now: datetime | None = None) -> ParseResult | None:
         date_part = datetime(now.year, now.month, last)
         has_date = True
     if date_part is None:
-        m = _P_MONTH_DAY.search(text)
+        m = month_day_matches[0] if month_day_matches else None
         if m:
             year, month = now.year, now.month
             if m.group(1) and m.group(1).startswith("下"):
                 month += 1
                 if month > 12:
                     month, year = 1, year + 1
-            day = int(m.group(2))
-            if day < 1:
-                return None
-            day = min(day, calendar.monthrange(year, month)[1])
+            day = min(int(m.group(2)), calendar.monthrange(year, month)[1])
             date_part = datetime(year, month, day)
             has_date = True
 
